@@ -129,7 +129,7 @@ PromoteMachines(pool, LstMachines);
 | 2    | 完成專案權限改為 public |  V  |
 | 3    | 具有 debug mode 的功能  |  V  |
 | 4    | 解決專案上所有 Memory Leak 的問題  |  V  |
-| 5    | 報告中沒有任何錯字，以及沒有任何一項遺漏  |    |
+| 5    | 報告中沒有任何錯字，以及沒有任何一項遺漏  |  V  |
 | 6    | 報告至少保持基本的美感，人類可讀  |  V  |
 
 ### 心得
