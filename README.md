@@ -83,12 +83,44 @@ Color::Color(std::string code)
 ```
 
 ### 使用到 AI/AI Agent 的部分 (沒有用到者，不需要寫這篇)
-主要使用到 ChatGPT, Gemeni, Claude 的 AI Chatbot。
+主要使用到 ChatGPT, Gemini, Claude 的 AI Chatbot。
 未使用到 AI Agent。
 
 ## 結語
 
 ### 問題與解決方法
+第一個問題是效能：
+PTSD給的Renderer太慢了，因此我以其為原型，修改出了適合這個專案的Renderer。
+單線程不足以支撐這麼多台機器，因此我把多線程套用在大部分機器更新步驟和Renderer的部分步驟。
+第二個問題是更新順序：
+同樣一條輸送帶，由後往前更新和由前往後更新，物品會差一幀。在高速輸送帶上或是輸送帶堵住的時候，這個問題會特別明顯。
+解決方法是透過透過`Update()`，`Restore()`，和`Promote()`三個函式解決這些問題。
+- `Update()` 假設前方機器是空的並直接將物品輸送過去。
+- 如果機器後方輸送物品，但機器不是空的，就會觸發遞迴函式`Restore()`。
+- 所有機器處理完後，所有機器`Promote()`，確認物品轉移。
+其中`Update()`和`Promote()`沒有順序性，因此可以使用多線程完成這兩個步驟。
+```cpp
+hub->Update();
+UpdateMachines(pool, LstMachines);
+
+std::vector<std::shared_ptr<ItemAcceptor>> acceptorConflicts;
+std::vector<std::shared_ptr<ItemEjector>> ejectorConflicts;
+
+for (auto& [pos, ac]: MapAcceptors) {
+    if (ac->CheckConflict()) {acceptorConflicts.push_back(ac);}
+}
+for (auto& [pos, ej]: MapEjectors) {
+    if (ej->CheckConflict()) {ejectorConflicts.push_back(ej);}
+}
+
+for (auto& ac: acceptorConflicts) {ac->StartRestore();}
+for (auto& ej: ejectorConflicts) {ej->StartRestore();
+}
+
+hub->Promote();
+PromoteMachines(pool, LstMachines);
+```
+
 ### 自評
 
 | 項次 | 項目                   | 完成 |
@@ -101,7 +133,10 @@ Color::Color(std::string code)
 | 6    | 報告至少保持基本的美感，人類可讀  |  V  |
 
 ### 心得
-
+因為異形工廠原本是個網頁.io遊戲，而且開源，因此github上和遊戲中都能夠直接拿到大多素材。但同時因為它是網頁遊戲，原本很容易透過html和css實作的UI介面，在PTSD中就要花很多時間。
+PTSD不支援調整圖片的顏色或透明度，這讓使用者介面的實作雪上加霜，就連Scratch都支援調顏色和透明度。
+Renderer雖然讓使用者不需要直接操作OpenGL，但是它的效能拉完了，尤其是處理矩陣運算的部分。
+如果之後還有這種課程的話，換個遊戲引擎吧，至少有問題網路上找的到答案。
 
 ### 貢獻比例
 陳柏全 - 100%
