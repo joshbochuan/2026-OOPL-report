@@ -33,12 +33,55 @@
 - 垃圾桶：將所有輸入的物品銷毀
 
 ### 遊戲畫面
+<img width="2562" height="1467" alt="image" src="https://github.com/user-attachments/assets/c34986eb-d97c-43d2-98ac-d872fc308251" />
 <img width="2562" height="1467" alt="image" src="https://github.com/user-attachments/assets/335b3bf9-8999-4dd6-a967-6c7a00c16a23" />
 
 ## 程式設計
 
 ### 程式架構
+`Machine`為所有機器的 base class。
+`ItemAcceptor`和`ItemEjector`以組合的方式表示一個機器的輸入和輸出。
+這些機器放在`World.hpp`中的一個陣列和一個以座標為key的哈希表中。
+機器的`ItemAcceptor`和`ItemEjector`放在一個以 {x座標, y座標, 旋轉方向} 為key的哈希表中。
+
+`Item`為所有物品的 base class，以組合的方式存在於`ItemAcceptor`，`ItemEjector`，機器，世界網格，或UI元素中。
+主要有`Shape`形狀和`Color`顏料。
+`ItemAcceptor`可以選擇只輸入形狀或顏料。
+
+場景主要處理玩家輸入和使用者介面，`Scene` 為場景的 base class。
+最主要有`TitleScene`標題畫面場景，和`GameScene`遊戲中場景。
+`TitleScene`處理創建、進入、刪除、重新命名存檔。
+`GameScene`則處理玩家放置和拆除機器，選擇機器和其變體，以及顯示其他功能。
+
+整個程式每一幀先更新場景，再更新世界和所有機器，最後更新 Renderer。
+
 ### 程式技術
+大量使用到繼承和組合。
+有些地方使用到 function overloading，例如顏料的建立：
+```cpp
+Color::Color(int color)
+    : Item(ItemType::COLOR) {
+    this->color = color;
+    SetDrawable(colorTextures[color]);
+    SetZIndex(20);
+}
+
+Color::Color(std::string code)
+    : Item(ItemType::COLOR) {
+    if (code == "Color-u") {color = 0;} // 000
+    else if (code == "Color-b") {color = 1;} // 001
+    else if (code == "Color-g") {color = 2;} // 010
+    else if (code == "Color-c") {color = 3;} // 011
+    else if (code == "Color-r") {color = 4;} // 100
+    else if (code == "Color-p") {color = 5;} // 101
+    else if (code == "Color-y") {color = 6;} // 110
+    else if (code == "Color-w") {color = 7;} // 111
+    else {throw std::invalid_argument("Invalid color " + code);}
+    SetDrawable(colorTextures[color]);
+    SetZIndex(20);
+}
+```
+
 ### 使用到 AI/AI Agent 的部分 (沒有用到者，不需要寫這篇)
 主要使用到 ChatGPT, Gemeni, Claude 的 AI Chatbot。
 未使用到 AI Agent。
@@ -55,7 +98,7 @@
 | 3    | 具有 debug mode 的功能  |  V  |
 | 4    | 解決專案上所有 Memory Leak 的問題  |  V  |
 | 5    | 報告中沒有任何錯字，以及沒有任何一項遺漏  |    |
-| 6    | 報告至少保持基本的美感，人類可讀  |    |
+| 6    | 報告至少保持基本的美感，人類可讀  |  V  |
 
 ### 心得
 
